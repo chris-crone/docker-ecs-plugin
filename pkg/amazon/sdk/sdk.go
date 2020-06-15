@@ -228,7 +228,7 @@ func (s sdk) UpdateStack(ctx context.Context, changeset string) error {
 		return err
 	}
 
-	if strings.HasPrefix(*desc.StatusReason, "The submitted information didn't contain changes.") {
+	if desc.StatusReason != nil && strings.HasPrefix(*desc.StatusReason, "The submitted information didn't contain changes.") {
 		return nil
 	}
 

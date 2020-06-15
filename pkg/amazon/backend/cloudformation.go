@@ -170,7 +170,6 @@ func (b Backend) Convert(project *compose.Project) (*cloudformation.Template, er
 				},
 			},
 			SchedulingStrategy: ecsapi.SchedulingStrategyReplica,
-			ServiceName:        service.Name,
 			ServiceRegistries:  []ecs.Service_ServiceRegistry{serviceRegistry},
 			Tags: []tags.Tag{
 				{
