@@ -13,6 +13,7 @@ type TaskStatus struct {
 
 const (
 	StackCreate = iota
+	StackUpdate = iota
 	StackDelete
 )
 

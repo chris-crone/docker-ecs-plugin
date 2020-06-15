@@ -5,7 +5,10 @@ export DOCKER_BUILDKIT=1
 
 .DEFAULT_GOAL := build
 
-build: ## Build for the current
+generate: pkg/amazon/sdk/api_mock.go
+	go generate ./...
+
+build: generate ## Build for the current
 	@docker build . \
 		--output ./dist \
 		--platform ${PLATFORM} \
@@ -32,4 +35,10 @@ lint: ## Verify Go files
 clean:
 	rm -rf dist/
 
-.PHONY: clean build test dev lint e2e cross
+fmt: ## Format go files
+	go fmt ./...
+
+imports: ## Format imports in go files
+	goimports -w .
+
+.PHONY: clean build test dev lint e2e cross fmt imports

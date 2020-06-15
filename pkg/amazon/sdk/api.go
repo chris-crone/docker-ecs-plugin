@@ -8,7 +8,7 @@ import (
 	"github.com/docker/ecs-plugin/pkg/amazon/types"
 )
 
-//go:generate mockgen -destination=./api_mock.go -self_package "github.com/docker/ecs-plugin/pkg/amazon" -package=amazon . API
+//go:generate mockgen -destination=./api_mock.go -self_package "github.com/docker/ecs-plugin/pkg/amazon" -package=sdk . API
 
 type API interface {
 	downAPI
@@ -27,6 +27,8 @@ type upAPI interface {
 	ClusterExists(ctx context.Context, name string) (bool, error)
 	StackExists(ctx context.Context, name string) (bool, error)
 	CreateStack(ctx context.Context, name string, template *cloudformation.Template, parameters map[string]string) error
+	CreateChangeSet(ctx context.Context, name string, template *cloudformation.Template, parameters map[string]string) (string, error)
+	UpdateStack(ctx context.Context, changeset string) error
 
 	LoadBalancerExists(ctx context.Context, name string) (bool, error)
 	GetLoadBalancerARN(ctx context.Context, name string) (string, error)

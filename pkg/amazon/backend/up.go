@@ -24,14 +24,6 @@ func (b *Backend) Up(ctx context.Context, options compose.ProjectOptions) error 
 		}
 	}
 
-	update, err := b.api.StackExists(ctx, project.Name)
-	if err != nil {
-		return err
-	}
-	if update {
-		return fmt.Errorf("we do not (yet) support updating an existing CloudFormation stack")
-	}
-
 	template, err := b.Convert(project)
 	if err != nil {
 		return err
@@ -60,13 +52,31 @@ func (b *Backend) Up(ctx context.Context, options compose.ProjectOptions) error 
 		ParameterLoadBalancerARN: lb,
 	}
 
-	err = b.api.CreateStack(ctx, project.Name, template, parameters)
+	update, err := b.api.StackExists(ctx, project.Name)
 	if err != nil {
 		return err
 	}
 
+	operation := types.StackCreate
+	if update {
+		operation = types.StackUpdate
+		changeset, err := b.api.CreateChangeSet(ctx, project.Name, template, parameters)
+		if err != nil {
+			return err
+		}
+		err = b.api.UpdateStack(ctx, changeset)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = b.api.CreateStack(ctx, project.Name, template, parameters)
+		if err != nil {
+			return err
+		}
+	}
+
 	fmt.Println()
-	return b.WaitStackCompletion(ctx, project.Name, types.StackCreate)
+	return b.WaitStackCompletion(ctx, project.Name, operation)
 }
 
 func (b Backend) GetVPC(ctx context.Context, project *compose.Project) (string, error) {
