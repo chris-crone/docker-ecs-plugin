@@ -5,10 +5,7 @@ export DOCKER_BUILDKIT=1
 
 .DEFAULT_GOAL := build
 
-generate: pkg/amazon/sdk/api_mock.go
-	go generate ./...
-
-build: generate ## Build for the current
+build: ## Build for the current
 	@docker build . \
 		--output ./dist \
 		--platform ${PLATFORM} \
