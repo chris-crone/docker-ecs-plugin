@@ -22,7 +22,6 @@ import (
 	cloudmap "github.com/awslabs/goformation/v4/cloudformation/servicediscovery"
 	"github.com/awslabs/goformation/v4/cloudformation/tags"
 	"github.com/docker/ecs-plugin/pkg/amazon/compatibility"
-	sdk "github.com/docker/ecs-plugin/pkg/amazon/sdk"
 	btypes "github.com/docker/ecs-plugin/pkg/amazon/types"
 	"github.com/docker/ecs-plugin/pkg/compose"
 )
@@ -97,7 +96,7 @@ func (b Backend) Convert(project *compose.Project) (*cloudformation.Template, er
 
 	for _, service := range project.Services {
 
-		definition, err := sdk.Convert(project, service)
+		definition, err := Convert(project, service)
 		if err != nil {
 			return nil, err
 		}

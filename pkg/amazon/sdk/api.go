@@ -51,9 +51,7 @@ type secretsAPI interface {
 }
 
 type listAPI interface {
-	ListTasks(ctx context.Context, cluster string, name string) ([]string, error)
-	DescribeTasks(ctx context.Context, cluster string, arns ...string) ([]types.TaskStatus, error)
-	GetPublicIPs(ctx context.Context, interfaces ...string) (map[string]string, error)
+	DescribeService(ctx context.Context, cluster string, name string) (types.ServiceStatus, error)
 }
 
 type waitAPI interface {

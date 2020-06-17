@@ -3,61 +3,29 @@ package backend
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/docker/ecs-plugin/pkg/amazon/types"
 	"github.com/docker/ecs-plugin/pkg/compose"
 )
 
-func (b *Backend) Ps(ctx context.Context, project *compose.Project) ([]types.TaskStatus, error) {
+func (b *Backend) Ps(ctx context.Context, project *compose.Project) ([]types.ServiceStatus, error) {
 	cluster := b.Cluster
 	if cluster == "" {
 		cluster = project.Name
 	}
-	arns := []string{}
+
+	status := []types.ServiceStatus{}
 	for _, service := range project.Services {
-		tasks, err := b.api.ListTasks(ctx, cluster, service.Name)
+		desc, err := b.api.DescribeService(ctx, cluster, service.Name)
 		if err != nil {
-			return []types.TaskStatus{}, err
+			return nil, err
 		}
-		arns = append(arns, tasks...)
-	}
-	if len(arns) == 0 {
-		return []types.TaskStatus{}, nil
-	}
-
-	tasks, err := b.api.DescribeTasks(ctx, cluster, arns...)
-	if err != nil {
-		return []types.TaskStatus{}, err
-	}
-
-	networkInterfaces := []string{}
-	for _, t := range tasks {
-		if t.NetworkInterface != "" {
-			networkInterfaces = append(networkInterfaces, t.NetworkInterface)
-		}
-	}
-	publicIps, err := b.api.GetPublicIPs(ctx, networkInterfaces...)
-	if err != nil {
-		return []types.TaskStatus{}, err
-	}
-
-	sort.Slice(tasks, func(i, j int) bool {
-		return strings.Compare(tasks[i].Service, tasks[j].Service) < 0
-	})
-
-	for i, t := range tasks {
 		ports := []string{}
-		s, err := project.GetService(t.Service)
-		if err != nil {
-			return []types.TaskStatus{}, err
+		for _, p := range service.Ports {
+			ports = append(ports, fmt.Sprintf("*:%d->%d/%s", p.Published, p.Target, p.Protocol))
 		}
-		for _, p := range s.Ports {
-			ports = append(ports, fmt.Sprintf("%s:%d->%d/%s", publicIps[t.NetworkInterface], p.Published, p.Target, p.Protocol))
-		}
-		tasks[i].Name = s.Name
-		tasks[i].Ports = ports
+		desc.Ports = ports
+		status = append(status, desc)
 	}
-	return tasks, nil
+	return status, nil
 }

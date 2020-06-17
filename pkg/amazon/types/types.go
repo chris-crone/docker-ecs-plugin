@@ -7,8 +7,15 @@ type TaskStatus struct {
 	State            string
 	Service          string
 	NetworkInterface string
-	PublicIP         string
 	Ports            []string
+}
+
+type ServiceStatus struct {
+	ID       string
+	Name     string
+	Replicas int
+	Desired  int
+	Ports    []string
 }
 
 const (

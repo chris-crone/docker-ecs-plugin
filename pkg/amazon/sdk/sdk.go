@@ -398,10 +398,26 @@ func (s sdk) GetLogs(ctx context.Context, name string, consumer types.LogConsume
 	}
 }
 
-func (s sdk) ListTasks(ctx context.Context, cluster string, service string) ([]string, error) {
+func (s sdk) DescribeService(ctx context.Context, cluster string, name string) (types.ServiceStatus, error) {
+	services, err := s.ECS.DescribeServicesWithContext(ctx, &ecs.DescribeServicesInput{
+		Cluster:  aws.String(cluster),
+		Services: aws.StringSlice([]string{name}),
+	})
+	if err != nil {
+		return types.ServiceStatus{}, err
+	}
+	return types.ServiceStatus{
+		ID:       *services.Services[0].ServiceName,
+		Name:     name,
+		Replicas: int(*services.Services[0].RunningCount),
+		Desired:  int(*services.Services[0].DesiredCount),
+	}, nil
+}
+
+func (s sdk) ListTasks(ctx context.Context, cluster string, family string) ([]string, error) {
 	tasks, err := s.ECS.ListTasksWithContext(ctx, &ecs.ListTasksInput{
-		Cluster:     aws.String(cluster),
-		ServiceName: aws.String(service),
+		Cluster: aws.String(cluster),
+		Family:  aws.String(family),
 	})
 	if err != nil {
 		return nil, err
